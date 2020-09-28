@@ -8,6 +8,7 @@ const FoldersService = {
       .into("folders")
       .returning("*")
       .then((rows) => {
+        console.log(rows);
         return rows[0];
       });
   },

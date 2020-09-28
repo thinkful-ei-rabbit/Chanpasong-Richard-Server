@@ -6,14 +6,41 @@ const NoteService = require("./note-service");
 const notesRouter = express.Router();
 const jsonParser = express.json();
 
+const serializeNote = note => ({
+  id: note.id,
+  name: xss(note.name),
+  content: xss(note.content),
+  modifed: xss(note.modifed),
+  folderId: note.folderId
+});
+
 notesRouter
   .route("/")
   .get((req, res, next) => {
     NoteService.getAllNotes(req.app.get("db")).then((result) => {
-      res.json(result);
-    });
+      res.json(result.map(serializeNote));
+    })
+      .catch(next);
   })
-  .post(jsonParser, (req, res, next) => {});
+  .post(jsonParser, (req, res, next) => {
+    const { name, content, folderId } = req.body;
+    //console.log(name);
+    // Make sure there is a name
+    if (!name) {
+      res.status(404).send('Note name is required');
+    }
+    if (!content) {
+      res.status(404).send('Content is required');
+    }
+    if (!folderId) {
+      res.status(404).send('FolderId is required');
+    }
+    // Sanitize the name and grab
+    NoteService.insertNote(req.app.get('db'), {name, content, folderId}).then(result => {
+      res.status(201).json(serializeNote(result));
+    })
+      .catch(next);
+  });
 
 notesRouter
   .route("/:note_id")

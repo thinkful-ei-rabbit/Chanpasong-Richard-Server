@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 const path = require("path");
 const express = require("express");
 const xss = require("xss");
@@ -6,14 +7,33 @@ const FolderService = require("./folder-service");
 const foldersRouter = express.Router();
 const jsonParser = express.json();
 
+const serializeFolder = folder => ({
+  id: folder.id,
+  name: xss(folder.name),
+  modifed: xss(folder.modifed),
+});
+
 foldersRouter
   .route("/")
   .get((req, res, next) => {
     FolderService.getAllFolders(req.app.get("db")).then((result) => {
-      res.json(result);
-    });
+      res.json(result.map(serializeFolder));
+    })
+      .catch(next);
   })
-  .post(jsonParser, (req, res, next) => {});
+  .post(jsonParser, (req, res, next) => {
+    const { name } = req.body;
+    console.log(name);
+    // Make sure there is a name
+    if (!name) {
+      res.status(404).send('Folder name is required');
+    }
+    // Sanitize the name
+    FolderService.insertFolder(req.app.get('db'), {name: name}).then(result => {
+      res.status(201).json(serializeFolder(result));
+    })
+      .catch(next);
+  });
 
 foldersRouter
   .route("/:folder_id")
@@ -30,8 +50,8 @@ foldersRouter
       })
       .catch(next);
   })
-  .get((req, res, next) => {})
-  .delete((req, res, next) => {})
-  .patch(jsonParser, (req, res, next) => {});
+  .get((req, res, next) => { })
+  .delete((req, res, next) => { })
+  .patch(jsonParser, (req, res, next) => { });
 
 module.exports = foldersRouter;
