@@ -25,7 +25,6 @@ notesRouter
   })
   .post(jsonParser, (req, res, next) => {
     const { name, content, folderId } = req.body;
-    //console.log(name);
     // Make sure there is a name
     if (!name) {
       res.status(404).send("Note name is required");

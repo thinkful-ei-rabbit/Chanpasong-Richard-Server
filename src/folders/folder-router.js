@@ -24,7 +24,6 @@ foldersRouter
   })
   .post(jsonParser, (req, res, next) => {
     const { name } = req.body;
-    console.log(name);
     // Make sure there is a name
     if (!name) {
       res.status(404).send("Folder name is required");
